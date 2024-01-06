@@ -31,22 +31,32 @@ class Pyramid:
             (top[0], top[1]-size*sqrt(6)/3, top[2]-size*sqrt(3)/3),
             (top[0]-size/2, top[1]-size*sqrt(6)/3,top[2]+size*sqrt(3)/6),
             (top[0]+size/2, top[1]-size*sqrt(6)/3,top[2]+size*sqrt(3)/6),
-
             top
         )
 
 
-    def draw(self):
+    def draw(self): #todo rysowanie trujkątów zamiast linii i scian
         glBegin(GL_LINES)
         for edge in self.edges:
             for vertex in edge:
                 glVertex3fv(self.vertices[vertex])
         glEnd()
 
-        glBegin(GL_QUADS)
-        for surface in self.surfaces:
-            for i, vertex in enumerate(surface):
-                glColor3fv(self.colors[i])
-                # glColor3fv((1.0, 1.0, 1.0))
-                glVertex3fv(self.vertices[vertex])
+        glBegin(GL_TRIANGLES)
+        glVertex3f(self.vertices[3][0], self.vertices[3][1], self.vertices[3][2])
+        glVertex3f(self.vertices[0][0], self.vertices[0][1], self.vertices[0][2])
+        glVertex3f(self.vertices[1][0], self.vertices[1][1], self.vertices[1][2])
+
+        glVertex3f(self.vertices[3][0], self.vertices[3][1], self.vertices[3][2])
+        glVertex3f(self.vertices[1][0], self.vertices[1][1], self.vertices[1][2])
+        glVertex3f(self.vertices[2][0], self.vertices[2][1], self.vertices[2][2])
+
+        glVertex3f(self.vertices[3][0], self.vertices[3][1], self.vertices[3][2])
+        glVertex3f(self.vertices[2][0], self.vertices[2][1], self.vertices[2][2])
+        glVertex3f(self.vertices[3][0], self.vertices[3][1], self.vertices[3][2])
+
+        glVertex3f(self.vertices[0][0], self.vertices[0][1], self.vertices[0][2])
+        glVertex3f(self.vertices[1][0], self.vertices[1][1], self.vertices[1][2])
+        glVertex3f(self.vertices[2][0], self.vertices[2][1], self.vertices[2][2])
+
         glEnd()
