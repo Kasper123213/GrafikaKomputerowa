@@ -1,5 +1,9 @@
 from OpenGL.GL import *
 from math import sqrt
+
+from OpenGL.raw.GLU import gluCylinder, gluDisk
+
+
 class Pyramid:
     edges = (
         (0, 1),
@@ -27,36 +31,18 @@ class Pyramid:
     )
 
     def __init__(self, top, size):
-        self.vertices = (
-            (top[0], top[1]-size*sqrt(6)/3, top[2]-size*sqrt(3)/3),
-            (top[0]-size/2, top[1]-size*sqrt(6)/3,top[2]+size*sqrt(3)/6),
-            (top[0]+size/2, top[1]-size*sqrt(6)/3,top[2]+size*sqrt(3)/6),
-            top
-        )
+        self.height = size*sqrt(6)/3
+        self.radius = size*sqrt(3)/3
+        self.center = (top[0], top[1] - self.height, top[2])
 
 
-    def draw(self): #todo rysowanie trujkątów zamiast linii i scian
-        glBegin(GL_LINES)
-        for edge in self.edges:
-            for vertex in edge:
-                glVertex3fv(self.vertices[vertex])
-        glEnd()
+    def draw(self, quadric):
+        glTranslatef(self.center[0], self.center[1], self.center[2])
+        glRotatef(-90, 1, 0, 0)
 
-        glBegin(GL_TRIANGLES)
-        glVertex3f(self.vertices[3][0], self.vertices[3][1], self.vertices[3][2])
-        glVertex3f(self.vertices[0][0], self.vertices[0][1], self.vertices[0][2])
-        glVertex3f(self.vertices[1][0], self.vertices[1][1], self.vertices[1][2])
+        gluCylinder(quadric, self.radius, 0, self.height, 3, 1)
+        gluDisk(quadric, 0, self.radius, 3, 1)
 
-        glVertex3f(self.vertices[3][0], self.vertices[3][1], self.vertices[3][2])
-        glVertex3f(self.vertices[1][0], self.vertices[1][1], self.vertices[1][2])
-        glVertex3f(self.vertices[2][0], self.vertices[2][1], self.vertices[2][2])
+        glRotatef(90, 1, 0, 0)
+        glTranslatef(-self.center[0], -self.center[1], -self.center[2])
 
-        glVertex3f(self.vertices[3][0], self.vertices[3][1], self.vertices[3][2])
-        glVertex3f(self.vertices[2][0], self.vertices[2][1], self.vertices[2][2])
-        glVertex3f(self.vertices[3][0], self.vertices[3][1], self.vertices[3][2])
-
-        glVertex3f(self.vertices[0][0], self.vertices[0][1], self.vertices[0][2])
-        glVertex3f(self.vertices[1][0], self.vertices[1][1], self.vertices[1][2])
-        glVertex3f(self.vertices[2][0], self.vertices[2][1], self.vertices[2][2])
-
-        glEnd()
