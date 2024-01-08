@@ -10,20 +10,36 @@ from math import *
 from objects.sierpinskiPyramid import SierpinskiPyramid
 
 
+# if viewerMoveVector[2] != 0:
+#     glScalef(viewerMoveVector[2], viewerMoveVector[2], viewerMoveVector[2])
+# glLightfv(GL_LIGHT0, GL_POSITION, light_position) todo swiatlo rusza sie z figurą
+
+
+
+
 def startup():
     update_viewport(None, display[0], display[1])
     glClearColor(0.0, 0.0, 0.0, 1.0)
     glEnable(GL_DEPTH_TEST)
 
-    # #ustawianie swiatła punktowego
+
+    #ustawianie swiatła punktowego
+    glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse)
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular)
+    glMaterialf(GL_FRONT, GL_SHININESS, mat_shininess)
     glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient)
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse)
-    # glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular)
+    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular)
     glLightfv(GL_LIGHT0, GL_POSITION, light_position)
-
+    glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, att_constant)
+    glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, att_linear)
+    glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, att_quadratic)
     glShadeModel(GL_SMOOTH)
     glEnable(GL_LIGHTING)
     glEnable(GL_LIGHT0)
+
+
 
 
 def shutdown():
@@ -56,35 +72,51 @@ def axes():
 
 
 def render(time):
-    # glLightfv(GL_LIGHT0, GL_POSITION, light_position)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
 
-    gluLookAt(viewer[0], viewer[1], viewer[2], 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
 
-    axes()
-    glRotatef(time * 180 / pi /2, 0, -1, 0)
+    gluLookAt(viewer[0], viewer[1], viewer[2], .0, .0, .0, .0, 1.0, .0)
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position)
+
 
     quadric = gluNewQuadric()
+
+    glDisable(GL_LIGHTING)  #Światło nie wpływa na ten obiekt
+    axes()  #osie
+
+    #rysowanie zrodla swiatla
+    glColor3f(1.0, 1.0, 1.0)
+    glTranslatef(-light_position[0], -light_position[1], -light_position[2])
+
+    gluQuadricDrawStyle(quadric, GLU_FILL)
+    gluSphere(quadric, 0.1, 30, 30)
+
+
+    glTranslatef(*light_position[:-1])
+
+    glEnable(GL_LIGHTING)
+
+
+    glRotatef(time * 180 / pi /4, 0, -1, 0)
+
+
+
+
+    # quadric = gluNewQuadric()
     gluQuadricDrawStyle(quadric, GLU_FILL)
     gluQuadricOrientation(quadric, GLU_INSIDE)
 
     figure.draw(quadric)
-    #################################
-    # glRotatef(-90, 1, 0, 0)
-    # quadric = gluNewQuadric()
-    #
-    # gluQuadricDrawStyle(quadric, GLU_FILL);
-    # gluCylinder(quadric, 4.0, 0, 4.0, 3, 1)
-    # #(quadratic, podstawa1, podstawa2, promien(wysokosc),  liczbaBokow, 1)
-    # gluQuadricOrientation(quadric, GLU_INSIDE)
-    # gluDisk(quadric, 0, 4, 3, 1)
-    # #(quadratic, 0, promien, boki, 1)
-    #
-    # gluDeleteQuadric(quadric)
-    #################################
     glFlush()
 
+
+    if viewerMoveVector[0] != 0:
+        viewerAngles[0] += viewerMoveVector[0] * viewerSpeed
+        calcViewerPose()
+    if viewerMoveVector[1] != 0:
+        viewerAngles[1] += viewerMoveVector[1] * viewerSpeed
+        calcViewerPose()
 
 
 
@@ -102,12 +134,58 @@ def update_viewport(window, width, height):
     glLoadIdentity()
 
     if width <= height:
-        glOrtho(-7.5, 7.5, -7.5 / aspect_ratio, 7.5 / aspect_ratio, 7.5, -7.5)
+        glOrtho(-7.5, 7.5, -7.5 / aspect_ratio, 7.5 / aspect_ratio, 10.5, -10.5)
     else:
-        glOrtho(-7.5 * aspect_ratio, 7.5 * aspect_ratio, -7.5, 7.5, 7.5, -7.5)
+        glOrtho(-7.5 * aspect_ratio, 7.5 * aspect_ratio, -7.5, 7.5, 10.5, -10.5)
 
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
+
+# def checkAngles():
+#     R = sqrt(viewer[0]**2 + viewer[1]**2 + viewer[2]**2)
+#     r = sqrt(viewer[0]**2 + viewer[2]**2)
+#     viewerAngles[0] = asin(viewer[2]/r) #z/r
+#     viewerAngles[1] = asin(viewer[1]/R) #y/R
+#     viewerAngles[2] = R
+def calcViewerPose():
+    viewer[0] = viewerAngles[2] * cos(viewerAngles[1]) * cos(viewerAngles[0])
+    viewer[1] = viewerAngles[2] * sin(viewerAngles[1])
+    viewer[2] = viewerAngles[2] * sin(viewerAngles[0]) * cos(viewerAngles[1])
+    if viewerMoveVector[2] != 0:
+        glScalef(viewerMoveVector[2], viewerMoveVector[2], viewerMoveVector[2])
+
+
+def keyboard_key_callback(window, key, scancode, action, mods):
+
+    if (key == GLFW_KEY_ESCAPE or key == GLFW_KEY_Q) and action == GLFW_PRESS:
+        glfwSetWindowShouldClose(window, GLFW_TRUE)
+
+    if key == GLFW_KEY_RIGHT and action == GLFW_PRESS:
+        viewerMoveVector[0] = 1
+    if key == GLFW_KEY_LEFT and action == GLFW_PRESS:
+        viewerMoveVector[0] = -1
+    if key == GLFW_KEY_UP and action == GLFW_PRESS:
+        viewerMoveVector[1] = -1
+    if key == GLFW_KEY_DOWN and action == GLFW_PRESS:
+        viewerMoveVector[1] = 1
+        #zoom
+    if key == GLFW_KEY_Z and action == GLFW_PRESS:
+        viewerMoveVector[2] = 1+zoomParameter
+    if key == GLFW_KEY_X and action == GLFW_PRESS:
+        viewerMoveVector[2] = 1-zoomParameter
+
+
+    if (key == GLFW_KEY_RIGHT or key == GLFW_KEY_LEFT) and action == GLFW_RELEASE:
+        viewerMoveVector[0] = 0
+    if (key == GLFW_KEY_UP or key == GLFW_KEY_DOWN) and action == GLFW_RELEASE:
+        viewerMoveVector[1] = 0
+    #zoom
+    if (key == GLFW_KEY_X or key == GLFW_KEY_Z) and action == GLFW_RELEASE:
+        viewerMoveVector[2] = 0
+
+
+
+
 
 
 def main():
@@ -122,6 +200,7 @@ def main():
 
     glfwMakeContextCurrent(window)
     glfwSetFramebufferSizeCallback(window, update_viewport)
+    glfwSetKeyCallback(window, keyboard_key_callback)
     glfwSwapInterval(1)
 
     startup()
@@ -135,26 +214,63 @@ def main():
 
 
 
+
+#todo instrukcja strzalki, q lub esc, z, x
 #ilość poziomów piramidy
 # lvl = int(input("Podaj wartość do wygenerowania piramidy. wartość powinna być liczbą całkowitą większą od 0 : \n"))
 lvl = 1 #todo
 
-size = 7         #rozmiar piramidy
-topPos = (0,size*sqrt(6)/6,0)    #pozycja górnego wierzchołka od którego rysowane są kolejne
+size = 7                        #rozmiar piramidy
+topPos = (0,size*sqrt(6)/6,0)   #pozycja górnego wierzchołka od którego rysowane są kolejne
 
 figure = SierpinskiPyramid(topPos, size, lvl)   # tworzenie piramidy
 
-light_ambient = [0, 0, 0, 1]    #kolor cienia
-light_diffuse = [.8, .8, .1, 1] #kolor światła
-light_specular = [0, 0, 0, 1]   #kolor światła (blask)
 
-light_position = [5, -5, 1, 1]   #połorzenie światła
+
+#parametry swiatla
+mat_ambient = [0.0, 0.0, 0.0, 1.0]  #kolor odbity
+mat_diffuse = [1.0, 0.0, 0.0, 1.0]  #kolor rozproszony
+mat_specular = [0.0, 0.0, 0.0, 1.0] #kolor odbijanego swiatla
+mat_shininess = 40.0
+
+light_ambient = [0.0, 0.0, 0.0, 1.0]    #kolor otoczenia
+light_diffuse = [1.0, 1.0, 1.0, 1.0]    #kolor swiatła rozproszonego
+light_specular = [1.0, 1.0, 1.0, 1.0]   #kolor odbitego swiatla
+light_position = [0.0, 0.0, 10.0, 1.0]#punktowe #pozycja źrodla swiatła
+# light_position = [10.0, 5.0, 1.0, 0.0] #kierunkowe
+
+#tłumienie swiatla
+att_constant = 1.0
+att_linear = 0.001
+att_quadratic = 0.0001
+
+# mat_ambient = [1.0, 1.0, 1.0, 1.0]
+# mat_diffuse = [1.0, 1.0, 1.0, 1.0]
+# mat_specular = [1.0, 1.0, 1.0, 1.0]
+# mat_shininess = 20.0
+#
+# light_ambient = [0.1, 0.1, 0.0, 1.0]
+# light_diffuse = [0.8, 0.8, 0.0, 1.0]
+# light_specular = [1.0, 1.0, 1.0, 1.0]
+# light_position = [0.0, 0.0, 10.0, 1.0]
+#
+# att_constant = 1.0
+# att_linear = 0.05
+# att_quadratic = 0.001
 
 
 
 display = (1000, 800)
 
+
+#parametru kamery
+viewerAngles = [pi/180 * 90, 0, 3]
 viewer = [0.0, 0.0, 3.0]
+viewerMoveVector = [0, 0, 0]#x, y, zoom
+viewerSpeed = pi/180 * 0.5
+
+zoomParameter = 0.2
+
 
 if __name__ == '__main__':
     main()
