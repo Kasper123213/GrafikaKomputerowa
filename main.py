@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-import sys
-import os
+from sys import exit
+from math import sqrt, pi, cos, sin
+from os import listdir, path
 
 from PIL import Image
 from glfw.GLFW import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
-import numpy as np
-from math import *
 
 from objects.sierpinskiPyramid import SierpinskiPyramid
 
@@ -15,10 +14,10 @@ from objects.sierpinskiPyramid import SierpinskiPyramid
 def countFiles(folder_path):
     try:
         # Uzyskaj listę plików w danym folderze
-        files = os.listdir(folder_path)
+        files = listdir(folder_path)
 
         # Zlicz pliki (nie uwzględniając podfolderów)
-        file_count = len([file for file in files if os.path.isfile(os.path.join(folder_path, file))])
+        file_count = len([file for file in files if path.isfile(path.join(folder_path, file))])
 
         return file_count
     except Exception as e:
@@ -29,7 +28,7 @@ def countFiles(folder_path):
 def getFile(folder_path, n):
     try:
         # Uzyskaj listę plików w danym folderze
-        files = os.listdir(folder_path)
+        files = listdir(folder_path)
         return files[n]
 
     except Exception as e:
@@ -134,13 +133,13 @@ def render(time):
     axes()  # osie
 
     # rysowanie zrodla swiatla
-    glColor3f(1.0, 1.0, 1.0)
-    glTranslatef(-light_position[0], -light_position[1], -light_position[2])
+    glColor3f(*light_diffuse[:3])
+    glTranslatef(-light_position[0], light_position[1], -light_position[2])
 
     gluQuadricDrawStyle(quadric, GLU_FILL)
     gluSphere(quadric, 0.1, 30, 30)
 
-    glTranslatef(*light_position[:-1])
+    glTranslatef(light_position[0], -light_position[1], light_position[2])
     glEnable(GL_LIGHTING)
     if floorActive:
         floor()  # pogłoga
@@ -192,7 +191,6 @@ def update_viewport(window, width, height):
 
 
 def calcPose(object, angles):
-    print(light_diffuse)
     object[0] = angles[2] * cos(angles[1]) * cos(angles[0])
     object[1] = angles[2] * sin(angles[1])
     object[2] = angles[2] * sin(angles[0]) * cos(angles[1])
@@ -307,7 +305,7 @@ def keyboard_key_callback(window, key, scancode, action, mods):
     if (key == GLFW_KEY_C or key == GLFW_KEY_V) and action == GLFW_RELEASE:
         light_move_vector[2] = 0
 
-
+print("Instrukcja:")
 print("z - przybliż")
 print("x - oddal")
 print("UP, DOWN, LEFT, RIGHT strzałka - stwrowanie kamerą")
@@ -317,12 +315,15 @@ print("n - kolejna tekstura")
 print("t - włączanie tekstur")
 print("f - usuwanie podłogi")
 print("w, s, a, d, c, v- poruszanie swiatłem")
+print("1 - 6 - zmiana kolorów")
 print("q - wyłączanie")
-
+print("####################################################################")
+print("Objekt odbija głównie jeden kolor światła. w związku z tym bez włączenia tekstury oświetlenie punktowe będzie działało słabo")
+print()
 
 # ilość poziomów piramidy
-# lvl = int(input("Podaj wartość do wygenerowania piramidy. wartość powinna być liczbą całkowitą większą od 0 : \n"))
-lvl = 3  # todo
+lvl = int(input("Podaj wartość do wygenerowania piramidy. wartość powinna być liczbą całkowitą większą od 0 \n"
+                "(dla płynności działania programu warto dać liczbę mniejszą od 8 w zależności od komputera): \n >>"))
 size = 7  # rozmiar piramidy
 topPos = (0, size * sqrt(6) / 6, 0)  # pozycja górnego wierzchołka od którego rysowane są kolejne
 
@@ -334,7 +335,7 @@ floorActive = True
 #parametry materiału
 
 mat_ambient = [0.0, 0.0, 0.0, 1.0]  # kolor odbity
-mat_diffuse = [.9, 0, 0, 1.0]  # kolor rozproszony
+mat_diffuse = [.9, .1, .1, 1.0]  # kolor rozproszony
 mat_specular = [0.0, 0.0, 0.0, 1.0]  # kolor odbijanego swiatla
 mat_shininess = 70.0
 
@@ -382,12 +383,12 @@ viewerSpeed = pi / 180 * 0.5
 deltaZoom = 1.1
 
 if not glfwInit():
-    sys.exit(-1)
+    exit(-1)
 
 window = glfwCreateWindow(display[0], display[1], __file__, None, None)
 if not window:
     glfwTerminate()
-    sys.exit(-1)
+    exit(-1)
 
 texturesNumber = countFiles("tekstury")
 textureCurrent = 0
