@@ -25,6 +25,6 @@ class SierpinskiPyramid:
 
 
 
-    def draw(self, quadric):
+    def draw(self, quadric, texturesActive):
         for f in self.pyramids:
-            f.draw(quadric)
+            f.draw(quadric, texturesActive)
