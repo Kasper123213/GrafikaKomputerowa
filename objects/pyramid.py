@@ -5,30 +5,7 @@ from OpenGL.raw.GLU import gluCylinder, gluDisk
 
 
 class Pyramid:
-    edges = (
-        (0, 1),
-        (1, 2),
-        (2, 0),
 
-        (3, 0),
-        (3, 1),
-        (3, 2)
-    )
-
-    surfaces = (
-        (0, 1, 2),
-
-        (2, 0, 3),
-        (1, 2, 3),
-        (0, 1, 3),
-    )
-
-    colors = (
-        (1, 0, 0),
-        (1, 1, 0),
-        (1, 0, 1),
-        (0, 0, 1),
-    )
 
     def __init__(self, top, size):
         self.height = size*sqrt(6)/3

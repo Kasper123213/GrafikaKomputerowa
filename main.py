@@ -10,12 +10,6 @@ from math import *
 from objects.sierpinskiPyramid import SierpinskiPyramid
 
 
-# if viewerMoveVector[2] != 0:
-#     glScalef(viewerMoveVector[2], viewerMoveVector[2], viewerMoveVector[2])
-# glLightfv(GL_LIGHT0, GL_POSITION, light_position) todo swiatlo rusza sie z figurą
-
-
-
 
 def startup():
     update_viewport(None, display[0], display[1])
@@ -23,7 +17,9 @@ def startup():
     glEnable(GL_DEPTH_TEST)
 
 
-    #ustawianie swiatła punktowego
+
+
+    #ustawianie swiatła
     glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse)
     glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular)
@@ -38,7 +34,6 @@ def startup():
     glShadeModel(GL_SMOOTH)
     glEnable(GL_LIGHTING)
     glEnable(GL_LIGHT0)
-
 
 
 
@@ -78,7 +73,7 @@ def render(time):
 
     gluLookAt(viewer[0], viewer[1], viewer[2], .0, .0, .0, .0, 1.0, .0)
     glLightfv(GL_LIGHT0, GL_POSITION, light_position)
-
+    glScale(viewerMoveVector[2], viewerMoveVector[2], viewerMoveVector[2])
 
     quadric = gluNewQuadric()
 
@@ -102,8 +97,6 @@ def render(time):
 
 
 
-
-    # quadric = gluNewQuadric()
     gluQuadricDrawStyle(quadric, GLU_FILL)
     gluQuadricOrientation(quadric, GLU_INSIDE)
 
@@ -134,25 +127,17 @@ def update_viewport(window, width, height):
     glLoadIdentity()
 
     if width <= height:
-        glOrtho(-7.5, 7.5, -7.5 / aspect_ratio, 7.5 / aspect_ratio, 10.5, -10.5)
+        glOrtho(-7.5, 7.5, -7.5 / aspect_ratio, 7.5 / aspect_ratio, 20.5, -10.5)
     else:
-        glOrtho(-7.5 * aspect_ratio, 7.5 * aspect_ratio, -7.5, 7.5, 10.5, -10.5)
+        glOrtho(-7.5 * aspect_ratio, 7.5 * aspect_ratio, -7.5, 7.5, 20.5, -10.5)
 
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
-# def checkAngles():
-#     R = sqrt(viewer[0]**2 + viewer[1]**2 + viewer[2]**2)
-#     r = sqrt(viewer[0]**2 + viewer[2]**2)
-#     viewerAngles[0] = asin(viewer[2]/r) #z/r
-#     viewerAngles[1] = asin(viewer[1]/R) #y/R
-#     viewerAngles[2] = R
 def calcViewerPose():
     viewer[0] = viewerAngles[2] * cos(viewerAngles[1]) * cos(viewerAngles[0])
     viewer[1] = viewerAngles[2] * sin(viewerAngles[1])
     viewer[2] = viewerAngles[2] * sin(viewerAngles[0]) * cos(viewerAngles[1])
-    if viewerMoveVector[2] != 0:
-        glScalef(viewerMoveVector[2], viewerMoveVector[2], viewerMoveVector[2])
 
 
 def keyboard_key_callback(window, key, scancode, action, mods):
@@ -168,54 +153,41 @@ def keyboard_key_callback(window, key, scancode, action, mods):
         viewerMoveVector[1] = -1
     if key == GLFW_KEY_DOWN and action == GLFW_PRESS:
         viewerMoveVector[1] = 1
+    #light
+    if key == GLFW_KEY_P and action == GLFW_PRESS:
+        light_position[3] = 1
+    if key == GLFW_KEY_K and action == GLFW_PRESS:
+        light_position[3] = 0
+
         #zoom
     if key == GLFW_KEY_Z and action == GLFW_PRESS:
-        viewerMoveVector[2] = 1+zoomParameter
+        viewerMoveVector[2] *= deltaZoom
     if key == GLFW_KEY_X and action == GLFW_PRESS:
-        viewerMoveVector[2] = 1-zoomParameter
+        viewerMoveVector[2] /= deltaZoom
 
 
     if (key == GLFW_KEY_RIGHT or key == GLFW_KEY_LEFT) and action == GLFW_RELEASE:
         viewerMoveVector[0] = 0
     if (key == GLFW_KEY_UP or key == GLFW_KEY_DOWN) and action == GLFW_RELEASE:
         viewerMoveVector[1] = 0
-    #zoom
-    if (key == GLFW_KEY_X or key == GLFW_KEY_Z) and action == GLFW_RELEASE:
-        viewerMoveVector[2] = 0
 
 
 
 
 
 
-def main():
-    if not glfwInit():
-        sys.exit(-1)
-
-    window = glfwCreateWindow(display[0], display[1], __file__, None, None)
-    if not window:
-        glfwTerminate()
-        sys.exit(-1)
-
-
-    glfwMakeContextCurrent(window)
-    glfwSetFramebufferSizeCallback(window, update_viewport)
-    glfwSetKeyCallback(window, keyboard_key_callback)
-    glfwSwapInterval(1)
-
-    startup()
-    while not glfwWindowShouldClose(window):
-        render(glfwGetTime())
-        glfwSwapBuffers(window)
-        glfwPollEvents()
-    shutdown()
-
-    glfwTerminate()
 
 
 
 
-#todo instrukcja strzalki, q lub esc, z, x
+
+
+print("z - przybliż")
+print("x - oddal")
+print("UP, DOWN, LEFT, RIGHT strzałka - stwrowanie kamerą")
+print("k - światło kierunkowe")
+print("p - światło punktowe")
+print("q - wyłączanie")
 #ilość poziomów piramidy
 # lvl = int(input("Podaj wartość do wygenerowania piramidy. wartość powinna być liczbą całkowitą większą od 0 : \n"))
 lvl = 1 #todo
@@ -231,13 +203,13 @@ figure = SierpinskiPyramid(topPos, size, lvl)   # tworzenie piramidy
 mat_ambient = [0.0, 0.0, 0.0, 1.0]  #kolor odbity
 mat_diffuse = [1.0, 0.0, 0.0, 1.0]  #kolor rozproszony
 mat_specular = [0.0, 0.0, 0.0, 1.0] #kolor odbijanego swiatla
-mat_shininess = 40.0
+mat_shininess = 30.0
 
 light_ambient = [0.0, 0.0, 0.0, 1.0]    #kolor otoczenia
-light_diffuse = [1.0, 1.0, 1.0, 1.0]    #kolor swiatła rozproszonego
-light_specular = [1.0, 1.0, 1.0, 1.0]   #kolor odbitego swiatla
-light_position = [0.0, 0.0, 10.0, 1.0]#punktowe #pozycja źrodla swiatła
-# light_position = [10.0, 5.0, 1.0, 0.0] #kierunkowe
+light_diffuse = [.9, .0, .0, 1.0]    #kolor swiatła rozproszonego
+light_specular = [.9, .9, .9, 1.0]   #kolor odbitego swiatla
+light_position = [0.0, 0.0, 10.0, 1.0]  #punktowe #pozycja źrodla swiatła
+# light_position = [10.0, 5.0, 1.0, 0.0]#kierunkowe
 
 #tłumienie swiatla
 att_constant = 1.0
@@ -266,11 +238,31 @@ display = (1000, 800)
 #parametru kamery
 viewerAngles = [pi/180 * 90, 0, 3]
 viewer = [0.0, 0.0, 3.0]
-viewerMoveVector = [0, 0, 0]#x, y, zoom
+viewerMoveVector = [0, 0, 1]#x, y, zoom
 viewerSpeed = pi/180 * 0.5
 
-zoomParameter = 0.2
+deltaZoom = 1.1
 
 
-if __name__ == '__main__':
-    main()
+
+if not glfwInit():
+    sys.exit(-1)
+
+window = glfwCreateWindow(display[0], display[1], __file__, None, None)
+if not window:
+    glfwTerminate()
+    sys.exit(-1)
+
+glfwMakeContextCurrent(window)
+glfwSetFramebufferSizeCallback(window, update_viewport)
+glfwSetKeyCallback(window, keyboard_key_callback)
+glfwSwapInterval(1)
+
+startup()
+while not glfwWindowShouldClose(window):
+    render(glfwGetTime())
+    glfwSwapBuffers(window)
+    glfwPollEvents()
+shutdown()
+
+glfwTerminate()
