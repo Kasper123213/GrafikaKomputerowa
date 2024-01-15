@@ -137,7 +137,7 @@ def render(time):
     glTranslatef(-light_position[0], light_position[1], -light_position[2])
 
     gluQuadricDrawStyle(quadric, GLU_FILL)
-    gluSphere(quadric, 0.1, 30, 30)
+    gluSphere(quadric, 0.3, 30, 30)
 
     glTranslatef(light_position[0], -light_position[1], light_position[2])
     glEnable(GL_LIGHTING)
@@ -158,7 +158,7 @@ def render(time):
     if viewerMoveVector[1] != 0:
         viewerAngles[1] += viewerMoveVector[1] * viewerSpeed
         calcPose(viewer, viewerAngles)
-    
+
     if light_move_vector[0] != 0:
         lightAngles[0] += light_move_vector[0] * light_speed
         calcPose(light_position, lightAngles)
@@ -208,7 +208,7 @@ def keyboard_key_callback(window, key, scancode, action, mods):
         viewerMoveVector[1] = -1
     if key == GLFW_KEY_DOWN and action == GLFW_PRESS:
         viewerMoveVector[1] = 1
-    # light
+    # swiatło
     if key == GLFW_KEY_P and action == GLFW_PRESS:
         if glIsEnabled(GL_LIGHT0):
             glDisable(GL_LIGHT0)
@@ -220,7 +220,7 @@ def keyboard_key_callback(window, key, scancode, action, mods):
         else:
             glEnable(GL_LIGHT1)
 
-        # zoom
+    # zoom
     if key == GLFW_KEY_Z and action == GLFW_PRESS:
         viewerMoveVector[2] *= deltaZoom
     if key == GLFW_KEY_X and action == GLFW_PRESS:
